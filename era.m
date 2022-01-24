@@ -23,6 +23,16 @@ function [Ar, Br, Cr, Dr] = era(markovParams, sz)
     
     % obtain SVD of hankel matrices
     [U0,S0,V0] = svd(H0);
+    system_order_strength = diag(S0)
+    p = char(inputdlg('Plot system singular value magnitudes (y/n)?')); 
+    if p == 'y'
+        figure();
+        semilogy(system_order_strength);
+        title('System Order Strength Plot');
+        xlabel('Order (Singular Value Index)');
+        ylabel('Magnitude of Order Strength');
+        grid on;
+    end
     
     % reduce the dimensions down to obtain a square S0
     S0 = S0(1:sz,1:sz);

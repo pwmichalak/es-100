@@ -25,7 +25,6 @@ function markovParams = okid(u,y,p)
     % Shape = q x ((m + q) * p + m);
     yt = y';
     observerMarkovParams = yt * V' / (V * V');
-    observerMarkovParams
     
     %% 4. Recover the combined system and Kalman filter Markov parameters
     markovParams = recoverMarkovParams(observerMarkovParams, m, q, p);
