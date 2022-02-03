@@ -17,7 +17,7 @@ clear C columns_037;
 
 %% 2. obtain data
 Ts = 1; % sampling rate
-x = 1:200; % data range
+x = 1:800; % data range
 t = Channel_1_037.Test_Time_s(x); % test times
 u = Channel_1_037.Current_A(x); % current (input) data
 y = Channel_1_037.Voltage_V(x); % voltage (output) data
@@ -29,30 +29,70 @@ y = Channel_1_037.Voltage_V(x); % voltage (output) data
 assert(all(tu == ty));
 
 %% 3. obtain state space matrix approximations using OKID / ERA
-order = 2;
+% pvals = 10:10:50;
+% i = 1;
+% RC2_params = zeros(5,length(pvals));
+% for p = pvals
 p = 40;
+order = 2;
 markovParams = okid(u,y,p);
 [Ar, Br, Cr, Dr] = era(markovParams, order);
 
 %% 4. obtain RC values from estimated state space matrices
 sys_discrete = ss(Ar,Br,Cr,Dr,Ts);
-%     sys = d2c(sys_discrete, 'foh');
+% sys = d2c(sys_discrete, 'foh');
 sys = sys_discrete;
 figure();
 bode(sys);
 title(strcat('OKID/ERA-Reconstructed System Bode Plot; p=', num2str(p)));
 legend(strcat('Data Range: 1-', num2str(length(x))));
-sysc = d2c(sys_discrete, 'foh');
 
 % check that reconstucted is the same as original
-yr = dlsim(Ar,Br,Cr,Dr,u);
 figure()
 hold on
 plot(y)
-plot(yr+y(1))
+yr = dlsim(Ar,Br,Cr,Dr,u);
+plot(yr+y(1),'DisplayName',strcat('p=',num2str(p)))
+sys_discrete = ss(Ar,Br,Cr,Dr,Ts);
 
-% extract RC parameters
-[R0, R1, R2, Cap1, Cap2, T] = extract_2rc_params(Ar,Br,Cr,Dr);
+%     sysc = d2c(sys_discrete, 'foh');
+%     sysc = sys_discrete;
+%     Ac = sysc.A;
+%     Bc = sysc.B;
+%     Cc = sysc.C;
+%     Dc = sysc.D;
+%     [R0, R1, R2, Cap1, Cap2, T] = extract_2rc_params(Ac,Bc,Cc,Dc);
+%     RC2_params(:,i) = [R0 R1 R2 Cap1 Cap2]';
+%     i = i+1;
+% end
+
+xlabel('Time(s)');
+ylabel('Voltage(V)');
+title('Reconstruction of time domain current-voltage data');
+legend();
+% legend('Original data',strcat('Reconstructed data, o=',num2str(order)));
+
+% figure()
+% hold on
+% plot(pvals, RC2_params(1:3,:))
+% xlabel('p value');
+% ylabel('Resistance value');
+% legend('R0','R1','R2');
+% 
+% figure()
+% hold on
+% plot(pvals, RC2_params(4:5,:))
+% xlabel('p value');
+% ylabel('Capacitance value');
+% legend('Cap1','Cap2');
+
+% extract RC parameters 
+% NEED TO CONVERT BACK TO CONTINUOUS TIME STATE SPACE FIRST
+% Ac = sysc.A;
+% Bc = sysc.B;
+% Cc = sysc.C;
+% Dc = sysc.D;
+% [R0, R1, R2, R3, Cap1, Cap2, Cap3, T] = extract_3rc_params(Ac,Bc,Cc,Dc);
 
 %% 5. MOESP
 % [ss_moesp,ssfun] = moesp(y,u,order);
