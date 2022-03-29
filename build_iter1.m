@@ -1,5 +1,34 @@
-function build_iter1()
+function [r0p, r1p, r2p, c1p, c2p, sysc_build] = build_iter1(u,y,p,order,Ts)
+    % First Iteration Build
+    % 
+    % INPUTS
+    % u: vector of current inputs to state space
+    % y: vector of voltage outputs from state space
+    % p: memory factor
+    % order: order of the system being reconstructed (2 for a 2RC ECM)
+    % Ts: sampling period
+    %
+    % OUTPUTS:
+    % r0p: prediction for resistance r0 from the battery 2RC ECM
+    % r1p: prediction for resistance r1 from the battery 2RC ECM
+    % r2p: prediction for resistance r2 from the battery 2RC ECM
+    % c1p: prediction for capacitance c1 from the battery 2RC ECM
+    % c2p: prediction for capacitance c2 from the battery 2RC ECM
     
+    % obtain estimated system state space matrices
+    markovParams = okid(u,y,p);
+    [Ar,Br,Cr,Dr] = era(markovParams, order);
+    
+    % convert reconstructed OKID state space matrices from discrete to continuous time 
+    sysd_build = ss(Ar,Br,Cr,Dr,Ts);
+    sysc_build = d2c(sysd_build,'d2c');
+    Aco = sysc_build.A;
+    Bco = sysc_build.B;
+    Cco = sysc_build.C;
+    Dco = sysc_build.D;
+    
+    % obtain RC parameter estimates
+    [r0p, r1p, r2p, c1p, c2p, ~] = extract_2rc_params(Aco, Bco, Cco, Dco);
 end
 
 
@@ -175,7 +204,7 @@ function V = makeAugmentedDataV(u,y,p,m,n,q)
 end
 
 
-%% Recover observer Markov Parameters (OKID helper function)
+%% Recover system Markov Parameters (OKID helper function)
 function markovParams = recoverMarkovParams(observerParams, m, q, p)
     
     % observerParams - a vector containing the observer Markov parameters

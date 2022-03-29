@@ -1,6 +1,40 @@
-function build_iter2()  
+function [r0p, r1p, r2p, c1p, c2p, sysc_build] = build_iter2(u,y,p,order,Ts,avg,stdev,skew,kurt)  
+    % Second Iteration Build
+    % 
+    % INPUTS
+    % u: vector of current inputs to state space
+    % y: vector of voltage outputs from state space
+    % p: memory factor
+    % order: order of the system being reconstructed (2 for a 2RC ECM)
+    % Ts: sampling period
+    % avg: mean value of the electrochemical noise distribution     
+    % stdev: standard deviation of the electrochemical noise
+    % skew: skewness of the electrochemical noise distribution
+    % kurt: kurtosis of the electrochemical noise distribution
+    %
+    % OUTPUTS:
+    % r0p: prediction for resistance r0 from the battery 2RC ECM
+    % r1p: prediction for resistance r1 from the battery 2RC ECM
+    % r2p: prediction for resistance r2 from the battery 2RC ECM
+    % c1p: prediction for capacitance c1 from the battery 2RC ECM
+    % c2p: prediction for capacitance c2 from the battery 2RC ECM
     
+    % obtain estimated system state space matrices
+    markovParams = okid_iter2(u,y,p,avg,stdev,skew,kurt);
+    [Ar,Br,Cr,Dr] = era(markovParams, order);
+    
+    % convert reconstructed OKID state space matrices from discrete to continuous time 
+    sysd_build = ss(Ar,Br,Cr,Dr,Ts);
+    sysc_build = d2c(sysd_build,'d2c');
+    Aco = sysc_build.A;
+    Bco = sysc_build.B;
+    Cco = sysc_build.C;
+    Dco = sysc_build.D;
+    
+    % obtain RC parameter estimates
+    [r0p, r1p, r2p, c1p, c2p, ~] = extract_2rc_params(Aco, Bco, Cco, Dco);
 end
+
 
 %% ERA; same as first iteration build (see first iteration build for comments)
 function [Ar, Br, Cr, Dr] = era(markovParams, sz)
@@ -113,7 +147,7 @@ function V = makeAugmentedDataV(u,y,p,m,n,q)
 end
 
 
-%% recover Markov Parameters; same as first iteration build (see first iteration build for comments)
+%% recover system Markov Parameters; same as first iteration build (see first iteration build for comments)
 function markovParams = recoverMarkovParams(observerParams, m, q, p)
     markovParams = cell(1,p+1);
     D = observerParams(:,1:m);
@@ -131,7 +165,7 @@ function markovParams = recoverMarkovParams(observerParams, m, q, p)
 end
 
 
-%% Extract RC parameters from state space matrices; same as first iteration build (see first iteration build for comments)
+%% extract RC parameters from state space matrices; same as first iteration build (see first iteration build for comments)
 function [R0, R1, R2, Cap1, Cap2, T] = extract_2rc_params(A,B,C,D)
     assert(all(size(A)==[2 2]))
     assert(all(size(B)==[2 1]))
