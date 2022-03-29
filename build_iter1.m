@@ -21,7 +21,7 @@ function [r0p, r1p, r2p, c1p, c2p, sysc_build] = build_iter1(u,y,p,order,Ts)
     
     % convert reconstructed OKID state space matrices from discrete to continuous time 
     sysd_build = ss(Ar,Br,Cr,Dr,Ts);
-    sysc_build = d2c(sysd_build,'d2c');
+    sysc_build = d2c(sysd_build,'zoh');
     Aco = sysc_build.A;
     Bco = sysc_build.B;
     Cco = sysc_build.C;
