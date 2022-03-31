@@ -1,4 +1,4 @@
-function [r0p, r1p, r2p, c1p, c2p, sysc_build] = build_iter2(u,y,p,order,Ts,avg,stdev,skew,kurt)  
+function [r0p, r1p, r2p, c1p, c2p, sysc_build, mse] = build_iter2(u,y,p,order,Ts)  
     % Second Iteration Build
     % 
     % INPUTS
@@ -7,10 +7,6 @@ function [r0p, r1p, r2p, c1p, c2p, sysc_build] = build_iter2(u,y,p,order,Ts,avg,
     % p: memory factor
     % order: order of the system being reconstructed (2 for a 2RC ECM)
     % Ts: sampling period
-    % avg: mean value of the electrochemical noise distribution     
-    % stdev: standard deviation of the electrochemical noise
-    % skew: skewness of the electrochemical noise distribution
-    % kurt: kurtosis of the electrochemical noise distribution
     %
     % OUTPUTS:
     % r0p: prediction for resistance r0 from the battery 2RC ECM
@@ -18,10 +14,23 @@ function [r0p, r1p, r2p, c1p, c2p, sysc_build] = build_iter2(u,y,p,order,Ts,avg,
     % r2p: prediction for resistance r2 from the battery 2RC ECM
     % c1p: prediction for capacitance c1 from the battery 2RC ECM
     % c2p: prediction for capacitance c2 from the battery 2RC ECM
+    % sysc_build: state space MATLAB object of the continuous-time system
+    % mse: mean-squared-error of original vs. predicted voltage
+    
+    % define electrochemical noise moments; values from Martemianov et al., Russian Journal of Electrochemistry, 2016
+    avg = 0; 
+    stdev = 20e-6; 
+    skew = 0; 
+    kurt = 2.2; 
     
     % obtain estimated system state space matrices
     markovParams = okid_iter2(u,y,p,avg,stdev,skew,kurt);
     [Ar,Br,Cr,Dr] = era(markovParams, order);
+    
+    % obtain mean squared error of original vs. predicted voltage
+    yr = dlsim(Ar,Br,Cr,Dr,u);
+    OCV = y(1);
+    mse = immse(y, yr + OCV);
     
     % convert reconstructed OKID state space matrices from discrete to continuous time 
     sysd_build = ss(Ar,Br,Cr,Dr,Ts);
@@ -32,7 +41,13 @@ function [r0p, r1p, r2p, c1p, c2p, sysc_build] = build_iter2(u,y,p,order,Ts,avg,
     Dco = sysc_build.D;
     
     % obtain RC parameter estimates
-    [r0p, r1p, r2p, c1p, c2p, ~] = extract_2rc_params(Aco, Bco, Cco, Dco);
+    if length(Aco) == 2
+        [r0p, r1p, r2p, c1p, c2p, ~] = extract_2rc_params(Aco, Bco, Cco, Dco);
+    else
+        disp('Reconstruction order changed; no 2RC model parameters extracted.');
+        disp('Setting estimated parameters to 0.');
+        r0p = 0; r1p = 0; r2p = 0; c1p = 0; c2p = 0;
+    end
 end
 
 

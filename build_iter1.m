@@ -1,4 +1,4 @@
-function [r0p, r1p, r2p, c1p, c2p, sysc_build] = build_iter1(u,y,p,order,Ts)
+function [r0p, r1p, r2p, c1p, c2p, sysc_build, mse] = build_iter1(u,y,p,order,Ts)
     % First Iteration Build
     % 
     % INPUTS
@@ -14,10 +14,17 @@ function [r0p, r1p, r2p, c1p, c2p, sysc_build] = build_iter1(u,y,p,order,Ts)
     % r2p: prediction for resistance r2 from the battery 2RC ECM
     % c1p: prediction for capacitance c1 from the battery 2RC ECM
     % c2p: prediction for capacitance c2 from the battery 2RC ECM
+    % sysc_build: state space MATLAB object of the continuous-time system
+    % mse: mean-squared-error of original vs. predicted voltage
     
     % obtain estimated system state space matrices
     markovParams = okid(u,y,p);
     [Ar,Br,Cr,Dr] = era(markovParams, order);
+    
+    % obtain mean squared error of original vs. predicted voltage
+    yr = dlsim(Ar,Br,Cr,Dr,u);
+    OCV = y(1);
+    mse = immse(y, yr + OCV);
     
     % convert reconstructed OKID state space matrices from discrete to continuous time 
     sysd_build = ss(Ar,Br,Cr,Dr,Ts);
@@ -28,7 +35,13 @@ function [r0p, r1p, r2p, c1p, c2p, sysc_build] = build_iter1(u,y,p,order,Ts)
     Dco = sysc_build.D;
     
     % obtain RC parameter estimates
-    [r0p, r1p, r2p, c1p, c2p, ~] = extract_2rc_params(Aco, Bco, Cco, Dco);
+    if length(Aco) == 2
+        [r0p, r1p, r2p, c1p, c2p, ~] = extract_2rc_params(Aco, Bco, Cco, Dco);
+    else
+        disp('Reconstruction order changed; no 2RC model parameters extracted.');
+        disp('Setting estimated parameters to 0.');
+        r0p = 0; r1p = 0; r2p = 0; c1p = 0; c2p = 0;
+    end
 end
 
 
@@ -277,3 +290,4 @@ function [R0, R1, R2, Cap1, Cap2, T] = extract_2rc_params(A,B,C,D)
     R1 = tau1 / Cap1;
     R2 = tau2 / Cap2;
 end
+
