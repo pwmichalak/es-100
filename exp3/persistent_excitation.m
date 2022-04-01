@@ -1,7 +1,7 @@
-% check for persistent excitation (at every order) of client data
+% check for persistent excitation (at every order) of DST data
 clear; close all;
 
-% obtain client data
+% obtain DST data
 channel = get_data('data/dst-Wang-Liu-Pan-Chen-2017.xlsx','Sheet1');
 channel.SampleTime = [];
 
