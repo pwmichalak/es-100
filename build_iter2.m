@@ -1,4 +1,4 @@
-function [r0p, r1p, r2p, c1p, c2p, sysc_build, mse] = build_iter2(u,y,p,order,Ts)  
+function [r0p, r1p, r2p, c1p, c2p, sysc_build, sysd_build, mse] = build_iter2(u,y,p,order,Ts)  
     % Second Iteration Build
     % 
     % INPUTS
