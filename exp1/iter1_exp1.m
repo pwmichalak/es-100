@@ -47,7 +47,7 @@ assert(all(tu == ty));
 p = 40;
 order = 2;
 fs = 1; Ts = 1/fs;
-[r0p, r1p, r2p, c1p, c2p, sysc_build, mse] = build_iter1(u,y,p,order,Ts);
+[r0p, r1p, r2p, c1p, c2p, sysc_build, sysd_build, mse] = build_iter1(u,y,p,order,Ts);
 
 
 
