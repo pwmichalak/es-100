@@ -34,19 +34,26 @@ function [r0p, r1p, r2p, c1p, c2p, sysc_build, sysd_build, mse] = build_iter2(u,
     
     % convert reconstructed OKID state space matrices from discrete to continuous time 
     sysd_build = ss(Ar,Br,Cr,Dr,Ts);
-    sysc_build = d2c(sysd_build,'zoh');
-    Aco = sysc_build.A;
-    Bco = sysc_build.B;
-    Cco = sysc_build.C;
-    Dco = sysc_build.D;
-    
-    % obtain RC parameter estimates
-    if length(Aco) == 2
-        [r0p, r1p, r2p, c1p, c2p, ~] = extract_2rc_params(Aco, Bco, Cco, Dco);
+    if all(abs(pole(sysd_build)) > 0.001)
+        sysc_build = d2c(sysd_build,'zoh');
+        Aco = sysc_build.A;
+        Bco = sysc_build.B;
+        Cco = sysc_build.C;
+        Dco = sysc_build.D;
+
+        % obtain RC parameter estimates
+        if length(Aco) == 2
+            [r0p, r1p, r2p, c1p, c2p, ~] = extract_2rc_params(Aco, Bco, Cco, Dco);
+        else
+            disp('Reconstruction order changed; no 2RC model parameters extracted.');
+            disp('Setting estimated parameters to 0.');
+            r0p = 0; r1p = 0; r2p = 0; c1p = 0; c2p = 0;
+        end
     else
-        disp('Reconstruction order changed; no 2RC model parameters extracted.');
+        disp('Pole near zero identified; no 2RC model parameters extracted.');
         disp('Setting estimated parameters to 0.');
         r0p = 0; r1p = 0; r2p = 0; c1p = 0; c2p = 0;
+        sysc_build = ss;
     end
 end
 

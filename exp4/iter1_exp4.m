@@ -71,20 +71,20 @@ title('Training Reconstruction of Sampled Voltage From UDDS Data (Different Axes
                                                      
 % obtain values for testing technical specification                                                    
 xtest = 1001:4000;
-y_dst_test = y_udds(xtest); 
-u_dst_test = u_udds(xtest); 
-t_dst_test = t_udds(xtest);
+y_udds_test = y_udds(xtest); 
+u_udds_test = u_udds(xtest); 
+t_udds_test = t_udds(xtest);
 
-yr_dst_test = dlsim(Audds, Budds, Cudds, Dudds, u_dst_test);
-OCV_dst_test = y_dst_test(1);
-mse_test = immse(y_dst_test,OCV_dst_test - yr_dst_test);
+yr_udds_test = dlsim(Audds, Budds, Cudds, Dudds, u_udds_test);
+OCV_udds_test = y_udds_test(1);
+mse_test = immse(y_udds_test,OCV_udds_test - yr_udds_test);
 
 % plot testing results
 figure(); 
 axes('FontSize', font, 'NextPlot', 'add');
-plot(y_dst_test,'DisplayName','Original Voltage','LineWidth',1); 
+plot(y_udds_test,'DisplayName','Original Voltage','LineWidth',1); 
 hold on;
-plot(OCV_dst_test - yr_dst_test,'DisplayName','Estimated Voltage','LineWidth',1); 
+plot(OCV_udds_test - yr_udds_test,'DisplayName','Estimated Voltage','LineWidth',1); 
 legend('FontSize', font);
 xlabel('Time (s)','FontSize', font); 
 ylabel('Voltage (V)','FontSize', font);
@@ -92,9 +92,9 @@ title('Testing Reconstruction of Sampled Voltage From UDDS Data','FontSize', fon
 
 figure(); 
 axes('FontSize', font, 'NextPlot', 'add');
-yyaxis left; plot(y_dst_test,'DisplayName','Original Voltage','LineWidth',1); 
+yyaxis left; plot(y_udds_test,'DisplayName','Original Voltage','LineWidth',1); 
 hold on; yyaxis right; 
-plot(OCV_dst_test - yr_dst_test,'DisplayName','Estimated Voltage','LineWidth',1); 
+plot(OCV_udds_test - yr_udds_test,'DisplayName','Estimated Voltage','LineWidth',1); 
 legend('FontSize', font);
 xlabel('Time (s)','FontSize', font); 
 ylabel('Voltage (V)','FontSize', font);
