@@ -65,7 +65,7 @@ for rmsy = rms_valsy
         u_u = awgn(u, snr_u, 'measured');
 
         p = randi([4 5],1) * order; % memory factor; should be 4-5 times the order
-        [r0p, r1p, r2p, c1p, c2p, sysc_build, mse] = build_iter1(u_u,y_y,p,order,Ts);
+        [r0p, r1p, r2p, c1p, c2p, sysc_build, sysd_build, mse] = build_iter1(u_u,y_y,p,order,Ts);
 
         % obtain percent error of parameter predictions 
         r0err = abs(r0p - r0) / r0;
@@ -106,7 +106,7 @@ for fs = fsvals
     
     % obtain predicted parameter values
     p = randi([4 5],1) * order; % memory factor; should be 4-5 times the order
-    [r0p, r1p, r2p, c1p, c2p, sysc_build, mse] = build_iter1(u,y,p,order,Ts);
+    [r0p, r1p, r2p, c1p, c2p, sysc_build, sysd_build, mse] = build_iter1(u,y,p,order,Ts);
     
     % obtain percent error of parameter predictions 
     r0err = abs(r0p - r0) / r0;
@@ -139,7 +139,7 @@ for order = orders
     fprintf(strcat("i=",num2str(order)),"\n");
 
     p = randi([4 5],1) * order; % memory factor; should be 4-5 times the order
-    [r0p, r1p, r2p, c1p, c2p, sysc_build, mse] = build_iter1(u,y,p,order,Ts);
+    [r0p, r1p, r2p, c1p, c2p, sysc_build, sysd_build, mse] = build_iter1(u,y,p,order,Ts);
     
     mses3(i) = mse;
     i = i+1;
@@ -170,7 +170,7 @@ for p = pvals
     disp(i);
     
     % obtain predicted parameter values
-    [r0p, r1p, r2p, c1p, c2p, sysc_build, mse] = build_iter1(u,y,p,order,Ts);
+    [r0p, r1p, r2p, c1p, c2p, sysc_build, sysd_build, mse] = build_iter1(u,y,p,order,Ts);
     
     % obtain percent error of parameter predictions 
     r0err = abs(r0p - r0) / r0;
